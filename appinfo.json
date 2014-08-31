@@ -1,0 +1,35 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "black6464@gmail.com",
+    "longName": "bold-stroke",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "images/bluetooth_thick_20_20.png",
+                "name": "IMAGE_BT_ICON",
+                "type": "png"
+            },
+            {
+                "file": "fonts/pocket_calcuatlor_tt.ttf",
+                "name": "FONT_PIXELMIX_24",
+                "type": "font"
+            },
+            {
+                "file": "fonts/Petitinho.ttf",
+                "name": "FONT_BOLD_40",
+                "type": "font"
+            }
+        ]
+    },
+    "shortName": "bold-stroke",
+    "uuid": "6a5e128f-d1ea-425e-bc01-fe48df3dd78b",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
