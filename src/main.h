@@ -16,6 +16,10 @@ bool invert;
 // Pebble current position for learning
 int curposx = 0;
 int curposy = 0;
+
+// If you want to use learning mode change this to true
+bool learning_mode_enabled = true;
+
 //Acceleromter stuff - taken from Jon Barlow (@orviwan)
 int hit_count = 0;
 int miss_count = 0;

@@ -145,7 +145,9 @@ void select_long_click_release_handler(ClickRecognizerRef recognizer, void *cont
 void click_config(){
 	window_single_click_subscribe(BUTTON_ID_SELECT, (ClickHandler)select);
 	window_single_click_subscribe(BUTTON_ID_BACK, (ClickHandler)back);
-  window_long_click_subscribe(BUTTON_ID_UP, 2000, select_long_click_handler, select_long_click_release_handler);
+  if(learning_mode_enabled){
+    window_long_click_subscribe(BUTTON_ID_UP, 3000, select_long_click_handler, select_long_click_release_handler);
+  }
 }
 
 void window_load(Window *window){
