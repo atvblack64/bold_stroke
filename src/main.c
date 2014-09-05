@@ -20,30 +20,30 @@ void try_vibration(){
 	
 void accel_data_handler(AccelData *data, uint32_t num_samples) {
 	APP_LOG(APP_LOG_LEVEL_INFO, "PUSH");
-    for(uint32_t i = 0; i < num_samples; i++) {
+	for(uint32_t i = 0; i < num_samples; i++) {
 		APP_LOG(APP_LOG_LEVEL_DEBUG, "X: %d, Y: %d", data[i].x, data[i].y);
-        if(data[i].x<=posx) {
-            miss_count = 0;
-            hit_count++;
-        }
-        else {
-            hit_count = 0;
-            miss_count++;
-        }
-    }
-    if(hit_count > delay) {
-        try_vibration();
-        hit_count = 0;
-        miss_count = 0;
-    }
-    if(miss_count > delay) {
-        hit_count = 0;
-        miss_count = 0;
+		if(data[i].x<=posx) {
+			miss_count = 0;
+			hit_count++;
+		}
+		else {
+			hit_count = 0;
+			miss_count++;
+		}
+	}
+	if(hit_count > delay) {
+		try_vibration();
+		hit_count = 0;
+		miss_count = 0;
+	}
+	if(miss_count > delay) {
+		hit_count = 0;
+		miss_count = 0;
 		vibes_fired = 0;
 		vibes_disabled = false;
-    }
-  curposx = data[num_samples-1].x;
-  curposy = data[num_samples-1].y;
+	}
+	curposx = data[num_samples-1].x;
+	curposy = data[num_samples-1].y;
 	if(debug){ 
 		APP_LOG(APP_LOG_LEVEL_INFO, "Hit: %d miss: %d vibes fired: %d", hit_count, miss_count, vibes_fired);
 	}
@@ -131,9 +131,9 @@ void bt_handler(bool connected){
 
 void select_long_click_handler(ClickRecognizerRef recognizer, void *context) {
 	posx = curposx;
-  posy = curposy;
-  vibes_short_pulse();
-  if(debug){
+	posy = curposy;
+	vibes_short_pulse();
+	if(debug){
 		APP_LOG(APP_LOG_LEVEL_INFO, "Learning: posX=%d, posY=%d", posx, posy);
 	}
 }
@@ -145,9 +145,9 @@ void select_long_click_release_handler(ClickRecognizerRef recognizer, void *cont
 void click_config(){
 	window_single_click_subscribe(BUTTON_ID_SELECT, (ClickHandler)select);
 	window_single_click_subscribe(BUTTON_ID_BACK, (ClickHandler)back);
-  if(learning_mode_enabled){
-    window_long_click_subscribe(BUTTON_ID_UP, 3000, select_long_click_handler, select_long_click_release_handler);
-  }
+	if(learning_mode_enabled){
+		window_long_click_subscribe(BUTTON_ID_UP, 3000, select_long_click_handler, select_long_click_release_handler);
+	}
 }
 
 void window_load(Window *window){
@@ -182,9 +182,9 @@ void window_load(Window *window){
 	layer_add_child(window_layer, inverter_layer_get_layer(theme));
 	
 	struct tm *t;
-  	time_t temp;        
-  	temp = time(NULL);        
-  	t = localtime(&temp);
+	time_t temp;
+	temp = time(NULL);
+	t = localtime(&temp);
 	
 	tick_handler(t, MINUTE_UNIT);
 	
@@ -218,16 +218,16 @@ void init(){
 	bt_icon = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BT_ICON);
 	
 	accel_data_service_subscribe(10, accel_data_handler);
-    accel_service_set_sampling_rate(ACCEL_SAMPLING_10HZ);
+	accel_service_set_sampling_rate(ACCEL_SAMPLING_10HZ);
 	
 	window_set_click_config_provider(window, click_config);
 	
-  posx = persist_exists(POSX_PKEY) ? persist_read_int(POSX_PKEY) : posx;
-  posy = persist_exists(POSY_PKEY) ? persist_read_int(POSY_PKEY) : posy;
-  
-  window_stack_push(window, true);
-  
-  if(debug){
+	posx = persist_exists(POSX_PKEY) ? persist_read_int(POSX_PKEY) : posx;
+	posy = persist_exists(POSY_PKEY) ? persist_read_int(POSY_PKEY) : posy;
+
+	window_stack_push(window, true);
+
+	if(debug){
 		APP_LOG(APP_LOG_LEVEL_INFO, "Start-up: posX=%d, posY=%d", posx, posy);
 	}
 }
@@ -241,8 +241,8 @@ void deinit(){
 	accel_data_service_unsubscribe();
 	bluetooth_connection_service_unsubscribe();
 	info_window_deinit();
-  persist_write_int(POSX_PKEY, posx);
-  persist_write_int(POSY_PKEY, posy);
+	persist_write_int(POSX_PKEY, posx);
+	persist_write_int(POSY_PKEY, posy);
 }
 
 int main(){
