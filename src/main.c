@@ -1,11 +1,14 @@
 #include <pebble.h>
 #include "main.h"
 #include "info_window.h"
+#include "settings_window.h"
 
 // Persist data keys
 #define POSX_PKEY 1
 #define POSY_PKEY 2
- 
+#define LEARNMODE_PKEY 3
+#define VIBELOCK_PKEY 4
+
 void try_vibration(){
 	if(vibes_lock > vibes_fired){
 		vibes_short_pulse();
@@ -19,9 +22,9 @@ void try_vibration(){
 }
 	
 void accel_data_handler(AccelData *data, uint32_t num_samples) {
-	APP_LOG(APP_LOG_LEVEL_INFO, "PUSH");
+	//APP_LOG(APP_LOG_LEVEL_INFO, "PUSH");
 	for(uint32_t i = 0; i < num_samples; i++) {
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "X: %d, Y: %d", data[i].x, data[i].y);
+		//APP_LOG(APP_LOG_LEVEL_DEBUG, "X: %d, Y: %d", data[i].x, data[i].y);
 		if(data[i].x<=posx) {
 			miss_count = 0;
 			hit_count++;
@@ -42,8 +45,6 @@ void accel_data_handler(AccelData *data, uint32_t num_samples) {
 		vibes_fired = 0;
 		vibes_disabled = false;
 	}
-	curposx = data[num_samples-1].x;
-	curposy = data[num_samples-1].y;
 	if(debug){ 
 		APP_LOG(APP_LOG_LEVEL_INFO, "Hit: %d miss: %d vibes fired: %d", hit_count, miss_count, vibes_fired);
 	}
@@ -51,6 +52,24 @@ void accel_data_handler(AccelData *data, uint32_t num_samples) {
 		int16_t y = data[0].y;
 		int16_t x = data[0].x;
 		refresh_info(y, x, vibes_total, miss_count, hit_count, vibes_disabled, vibes_fired);
+	}
+	// Load Settings
+	if(settings_window_exists()){
+		curposx = data[0].x;
+		curposy = data[0].y;
+		if(!flag_once){
+			load_settings(learning_mode_enabled, posx, posy, curposx, curposy, defX, defY, vibes_lock);
+			flag_once = true;
+		}
+	}
+	// Save Settings
+	if(!settings_window_exists() && flag_once){
+		int *bb = save_settings();
+		learning_mode_enabled = bb[0];
+		posx = bb[1];
+		posy = bb[2];
+		vibes_lock = bb[3];
+		flag_once = false;
 	}
 }
 	
@@ -129,25 +148,10 @@ void bt_handler(bool connected){
 	layer_set_hidden(inverter_layer_get_layer(bt_layer), !connected);
 }
 
-void select_long_click_handler(ClickRecognizerRef recognizer, void *context) {
-	posx = curposx;
-	posy = curposy;
-	vibes_short_pulse();
-	if(debug){
-		APP_LOG(APP_LOG_LEVEL_INFO, "Learning: posX=%d, posY=%d", posx, posy);
-	}
-}
-
-void select_long_click_release_handler(ClickRecognizerRef recognizer, void *context) {
-	//No contents needed
-}
-
 void click_config(){
 	window_single_click_subscribe(BUTTON_ID_SELECT, (ClickHandler)select);
 	window_single_click_subscribe(BUTTON_ID_BACK, (ClickHandler)back);
-	if(learning_mode_enabled){
-		window_long_click_subscribe(BUTTON_ID_UP, 3000, select_long_click_handler, select_long_click_release_handler);
-	}
+	window_long_click_subscribe(BUTTON_ID_UP, 200, (ClickHandler)settings_window_select, NULL);
 }
 
 void window_load(Window *window){
@@ -210,6 +214,7 @@ void init(){
 		.unload = window_unload,
 	});
 	info_window_init();
+	settings_window_init();
 	tick_timer_service_subscribe(MINUTE_UNIT, &tick_handler);
 	battery_state_service_subscribe(battery_handler);
 	bluetooth_connection_service_subscribe(bt_handler);
@@ -221,9 +226,17 @@ void init(){
 	accel_service_set_sampling_rate(ACCEL_SAMPLING_10HZ);
 	
 	window_set_click_config_provider(window, click_config);
-	
-	posx = persist_exists(POSX_PKEY) ? persist_read_int(POSX_PKEY) : posx;
-	posy = persist_exists(POSY_PKEY) ? persist_read_int(POSY_PKEY) : posy;
+	// Default position
+	defX = posx;
+	defY = posy;
+	// Load settings persist
+	if(learning_mode_enabled){
+		posx = persist_exists(POSX_PKEY) ? persist_read_int(POSX_PKEY) : posx;
+		posy = persist_exists(POSY_PKEY) ? persist_read_int(POSY_PKEY) : posy;
+	}
+	learning_mode_enabled = persist_exists(LEARNMODE_PKEY) ? persist_read_bool(LEARNMODE_PKEY) : learning_mode_enabled;
+	vibes_lock = persist_exists(VIBELOCK_PKEY) ? persist_read_int(VIBELOCK_PKEY) : vibes_lock;
+	load_settings(learning_mode_enabled, posx, posy, curposx, curposy, defX, defY, vibes_lock);
 
 	window_stack_push(window, true);
 
@@ -241,8 +254,12 @@ void deinit(){
 	accel_data_service_unsubscribe();
 	bluetooth_connection_service_unsubscribe();
 	info_window_deinit();
+	settings_window_deinit();
+	// Save settings persist
 	persist_write_int(POSX_PKEY, posx);
 	persist_write_int(POSY_PKEY, posy);
+	persist_write_bool(LEARNMODE_PKEY, learning_mode_enabled);
+	persist_write_int(VIBELOCK_PKEY, vibes_lock);
 }
 
 int main(){

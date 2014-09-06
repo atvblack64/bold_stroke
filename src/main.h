@@ -19,7 +19,7 @@ int curposy = 0;
 
 // If you want to use learning mode change this to true
 bool learning_mode_enabled = true;
-
+bool flag_once = false;
 //Acceleromter stuff - taken from Jon Barlow (@orviwan)
 int hit_count = 0;
 int miss_count = 0;
@@ -30,7 +30,7 @@ int posx = -600;
 int posy = 600;
 
 //adjust this number for the amount of vibes you want set off before it stops
-const int vibes_lock = 5;
+int vibes_lock = 5;
 //vibes_fired will keep track of how many vibrations have been fired while
 //the arm is held up
 int vibes_fired = 0;
